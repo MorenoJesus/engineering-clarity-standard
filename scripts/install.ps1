@@ -37,9 +37,11 @@ function Test-SameFile([string]$Source, [string]$Destination) {
 function Get-SkillSnapshot([string]$Directory) {
     $Entries = @{}
     if (Test-Path -LiteralPath $Directory -PathType Container) {
-        Get-ChildItem -LiteralPath $Directory -Recurse -File -Force | ForEach-Object {
-            $Relative = $_.FullName.Substring($Directory.Length).TrimStart([char[]]'\/')
-            $Entries[$Relative] = (Get-FileDigest $_.FullName)
+        # Enumerate literal filesystem paths; brackets must not act as wildcards.
+        $Directory = [IO.Path]::GetFullPath($Directory)
+        foreach ($File in [IO.Directory]::GetFiles($Directory, '*', 'AllDirectories')) {
+            $Relative = $File.Substring($Directory.Length).TrimStart([char[]]'\/')
+            $Entries[$Relative] = (Get-FileDigest $File)
         }
     }
     return $Entries
