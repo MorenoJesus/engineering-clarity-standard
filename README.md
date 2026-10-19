@@ -114,19 +114,34 @@ Proposed acceptance criteria:
 
 ## Quick start (Windows / PowerShell)
 
-Extract this archive into a folder (for example `C:\Tools\engineering-clarity-kit`). Install it into a **Git repository**:
+Extract this archive into a folder (for example `C:\Tools\engineering-clarity-kit`). Open a terminal in that folder. Use the standalone installer with **Windows PowerShell 5.1 or PowerShell 7**; Python is not required.
+
+Preview the files, then install into an existing **Git repository**:
 
 ```powershell
-py .\scripts\install.py --scope repo --repo 'C:\src\my-project'
+.\scripts\install.ps1 -Scope repo -Repo 'C:\src\my-project' -DryRun
+.\scripts\install.ps1 -Scope repo -Repo 'C:\src\my-project'
 ```
 
 Or install the skills for your **user account** across local repositories:
 
 ```powershell
+.\scripts\install.ps1 -Scope user -DryRun
+.\scripts\install.ps1 -Scope user
+```
+
+If your organization's execution policy blocks scripts, use the Python alternative below or follow your organization's approved PowerShell setup. Neither installer changes execution policy.
+
+**Python alternative on Windows:** Python 3 is required, with no extra packages. Use `--dry-run` to preview changes.
+
+```powershell
+py .\scripts\install.py --scope repo --repo 'C:\src\my-project' --dry-run
+py .\scripts\install.py --scope repo --repo 'C:\src\my-project'
+# Or install personal skills:
 py .\scripts\install.py --scope user
 ```
 
-If you use Python as `python` rather than `py`, substitute that command. Use `--dry-run` to preview changes.
+If your Python command is `python` rather than `py`, substitute that command. Both installers copy the same skill and adapter files, leave identical files unchanged, and skip conflicts for manual review.
 
 For macOS / Linux:
 
@@ -136,7 +151,7 @@ python3 scripts/install.py --scope repo --repo ~/src/my-project
 python3 scripts/install.py --scope user
 ```
 
-**Safe installation:** The installer never overwrites different existing files. It reports each skipped conflict. Manually merge changes into an existing `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, Copilot instructions, or PR template. Do not blindly replace existing organizational guidance.
+**Safe installation:** Both installers preserve different existing files and report each skipped conflict. Manually merge changes into an existing `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, Copilot instructions, or PR template. Do not blindly replace existing organizational guidance. A successful exit can include skipped conflicts; review the output before committing.
 
 After installation, commit the new files if you want the standard shared with your team and cloud agents. Personal-level installation only affects the local machine and compatible local tools.
 

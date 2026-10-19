@@ -6,7 +6,7 @@ ECS applies to documentation, work items, requirements, PR descriptions, archite
 
 ## Suggested rollout
 
-1. **Adopt in one repository.** Use `scripts/install.py --scope repo --repo <path>` from the kit. Review conflicts and commit the files on an approved branch.
+1. **Adopt in one repository.** From the kit folder, use `.\scripts\install.ps1 -Scope repo -Repo '<path>'` on Windows, or `python3 scripts/install.py --scope repo --repo <path>` on macOS/Linux. Preview with `-DryRun` or `--dry-run`, respectively. Review conflicts and commit the files on an approved branch.
 2. **Define business terms.** Replace the placeholder table in the skill's `references/glossary.md` with approved project terminology. Maintain one glossary for a domain when practical.
 3. **Use templates.** Start with user stories and PR descriptions, then introduce runbooks and ADRs. Retain only sections that materially improve the artifact.
 4. **Review in the PR process.** Require reviewers to check scope, consistency, verifiability, risks, and evidence. Do not auto-approve because an agent used the skill.

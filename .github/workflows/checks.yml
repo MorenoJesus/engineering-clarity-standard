@@ -17,4 +17,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python scripts/sync_skills.py --check
+      - name: Require PowerShell for installer comparison
+        shell: pwsh
+        run: $PSVersionTable.PSVersion.ToString()
       - run: python -m unittest discover -s tests -v

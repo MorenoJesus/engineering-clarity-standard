@@ -1,5 +1,7 @@
 """Exercise the installer CLI in disposable target directories."""
 from pathlib import Path
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -14,6 +16,9 @@ def snapshot(root):
 
 
 class InstallerTests(unittest.TestCase):
+    def command(self, *args):
+        return [sys.executable, str(ROOT / 'scripts/install.py'), *args]
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -22,8 +27,7 @@ class InstallerTests(unittest.TestCase):
 
     def install(self, *extra):
         return subprocess.run(
-            [sys.executable, str(ROOT / 'scripts/install.py'),
-             '--scope', 'repo', '--repo', str(self.target), *extra],
+            self.command('--scope', 'repo', '--repo', str(self.target), *extra),
             capture_output=True, text=True, check=True)
 
     def test_dry_run_writes_nothing(self):
@@ -75,7 +79,90 @@ class InstallerTests(unittest.TestCase):
     def test_missing_target_fails_without_creating_it(self):
         missing = self.target / 'missing'
         result = subprocess.run(
-            [sys.executable, str(ROOT / 'scripts/install.py'), '--scope', 'repo',
-             '--repo', str(missing)], capture_output=True, text=True)
+            self.command('--scope', 'repo', '--repo', str(missing)),
+            capture_output=True, text=True)
         self.assertEqual(2, result.returncode)
         self.assertFalse(missing.exists())
+
+    def test_invalid_argument_combinations_write_nothing(self):
+        for args in [('--scope', 'repo'),
+                     ('--scope', 'user', '--repo', str(self.target)),
+                     ('--scope', 'invalid')]:
+            with self.subTest(args=args):
+                result = subprocess.run(self.command(*args), capture_output=True, text=True)
+                self.assertNotEqual(0, result.returncode)
+                self.assertEqual([], list(self.target.iterdir()))
+
+
+class PowerShellInstallerTests(InstallerTests):
+    shell = shutil.which('pwsh')
+
+    def setUp(self):
+        if not self.shell:
+            self.skipTest('PowerShell 7 is not installed')
+        super().setUp()
+
+    def command(self, *args):
+        mapping = {'--scope': '-Scope', '--repo': '-Repo', '--dry-run': '-DryRun'}
+        return [self.shell, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'RemoteSigned', '-File',
+                str(ROOT / 'scripts/install.ps1'), *[mapping.get(a, a) for a in args]]
+
+
+class WindowsPowerShellInstallerTests(PowerShellInstallerTests):
+    shell = shutil.which('powershell') if os.name == 'nt' else None
+
+    def setUp(self):
+        if not self.shell:
+            self.skipTest('Windows PowerShell 5.1 is not installed')
+        super().setUp()
+
+
+class InstallerParityTests(unittest.TestCase):
+    def test_both_installers_produce_the_same_files_and_statuses(self):
+        shells = [s for s in (shutil.which('pwsh'),
+                  shutil.which('powershell') if os.name == 'nt' else None) if s]
+        if not shells:
+            self.skipTest('PowerShell is not installed')
+        with tempfile.TemporaryDirectory() as directory:
+            # Every process receives an isolated home, including user-scope tests.
+            for scope in ('repo', 'user'):
+                expected_files = expected_statuses = None
+                commands = [[sys.executable, str(ROOT / 'scripts/install.py')]]
+                commands += [[s, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'RemoteSigned', '-File',
+                              str(ROOT / 'scripts/install.ps1')] for s in shells]
+                for i, command in enumerate(commands):
+                    with self.subTest(scope=scope, command=command[0]):
+                        target = Path(directory) / f"{scope} {i} team's [repo]"
+                        target.mkdir()
+                        env = dict(os.environ)
+                        ps = i > 0
+                        args = ['-Scope' if ps else '--scope', scope]
+                        if scope == 'repo':
+                            args += ['-Repo' if ps else '--repo', str(target)]
+                        statuses = []
+                        for preview in (True, False, False):
+                            flags = (['-DryRun' if ps else '--dry-run'] if preview else [])
+                            if ps:
+                                # Set the test home after shell startup so runtime caches
+                                # cannot be mistaken for installer writes.
+                                quote = lambda value: "'" + value.replace("'", "''") + "'"
+                                invocation = "& " + quote(command[-1]) + " " + " ".join(
+                                    a if a.startswith('-') else quote(a) for a in args + flags)
+                                setup = "$env:USERPROFILE=" + quote(str(target)) + "; "
+                                setup += "$env:HOME=" + quote(str(target)) + "; "
+                                run = command[:-2] + ['-Command', setup + invocation]
+                            else:
+                                env.update(HOME=str(target), USERPROFILE=str(target))
+                                run = command + args + flags
+                            result = subprocess.run(run, env=env, capture_output=True,
+                                                    text=True, check=True)
+                            statuses.append([line.split(':', 1)[0] for line in result.stdout.splitlines()
+                                             if ':' in line])
+                            if preview:
+                                self.assertEqual([], list(target.iterdir()))
+                        files = snapshot(target)
+                        if expected_files is None:
+                            expected_files, expected_statuses = files, statuses
+                        else:
+                            self.assertEqual(expected_files, files)
+                            self.assertEqual(expected_statuses, statuses)
