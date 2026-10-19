@@ -6,6 +6,94 @@ ECS is a vendor-neutral, **ASD-STE100-inspired** writing convention for software
 
 > **Not ASD-STE100 certified.** ECS applies selected principles of simplified technical writing. It does not reproduce the official ASD-STE100 dictionary, implement every official rule, or establish formal compliance. Refer to https://asd-ste100.org/ for the official standard.
 
+## Why adopt ECS? See the difference
+
+ECS replaces vague technical language with explicit intent, observable results, and visible unknowns. That makes requests easier to implement, review, and test—whether the author is a person or an AI coding agent.
+
+**These are illustrative examples, not approved requirements or evidence of completed work.** The "after" versions demonstrate how to write a clearer *proposal*; actual behavior and test results must still be verified.
+
+### 1. User story: define who needs what
+
+**Before**
+
+> As a user, I want better error handling so everything works smoothly.
+
+**After**
+
+> As a support engineer, I want to identify messages that the service could not process so that I can investigate failures.
+
+Proposed acceptance criteria:
+
+- **AC-01:** Given a message exceeds the configured delivery limit, when the messaging service applies its dead-letter policy, then the message is available in the dead-letter queue.
+- **AC-02:** Given a message is in the dead-letter queue, when a support engineer opens its details, then the details show the message ID and recorded failure reason.
+- **Open question:** Which tool displays those details, and which roles can access them?
+
+**Why it helps:** The story identifies a real actor and business value. The criteria define observable results instead of relying on "works smoothly." The unanswered access decision stays visible.
+
+### 2. Pull request: distinguish changes from proof
+
+**Before**
+
+> Improved message handling and fixed retry issues. Tests look good.
+
+**After (illustrative PR description)**
+
+- **Purpose:** Prevent a repeated message from updating the same database record twice.
+- **Changes:** Added a message ID check before the update. Added error logging for failed database operations.
+- **Validation:** Duplicate-message unit test — **Not run**. Service Bus integration test — **Not run**.
+- **Risk:** Concurrent workers could pass the initial check. A unique constraint or transactional protection may be required.
+- **Rollback:** Not yet defined. Confirm whether the change modifies persistent schema or state.
+
+**Why it helps:** Reviewers can separate the intended fix, proposed implementation, missing test evidence, and unresolved risks. "Tests look good" is not a test result.
+
+### 3. Runbook: replace guesswork with safe steps
+
+**Before**
+
+> If it breaks, restart everything and try again.
+
+**After**
+
+1. If the message handler stops processing, inspect its health check.
+2. Review the most recent error log entry.
+3. Identify the failed dependency, if the available evidence supports that conclusion.
+4. Do not restart the service until the approved recovery procedure confirms that a restart is safe.
+
+**Open question:** Which health check and recovery procedure apply to this service?
+
+**Why it helps:** Operators know what evidence to collect before taking a potentially disruptive action. The procedure does not pretend that every failure needs a restart.
+
+### 4. API contract: replace adjectives with observable behavior
+
+**Before**
+
+> The API returns a useful error when something goes wrong.
+
+**After (proposed behavior)**
+
+> If the request body fails validation, the API returns HTTP `400` with a machine-readable error code and the invalid field names.
+
+**Why it helps:** Developers can implement a specific response, and QA can verify it. "Useful" is not an acceptance criterion. The response contract still needs approval and verification.
+
+### 5. AI coding instructions: limit silent assumptions
+
+**Before**
+
+> Make the message handler more reliable. Fix duplicates and add tests.
+
+**After (proposed task)**
+
+- **Goal:** Prevent two database updates for the same message ID, including when multiple workers process messages concurrently.
+- **Constraints:** Preserve the existing retry policy and message contract.
+- **Verification:** Add tests for repeated delivery and concurrent processing. Run the relevant tests and report the actual results. If a test was not run, write **Not run**.
+- **Open decision:** Identify how uniqueness is enforced across worker instances before selecting an implementation.
+
+**Why it helps:** An AI agent receives a bounded objective, explicit constraints, verification expectations, and a decision it must not invent.
+
+**The goal is not more documentation. It is less ambiguity.** For additional examples, see [Before and After — ECS Examples](.agents/skills/engineering-clarity/examples/before-after.md).
+
+---
+
 ## What is included?
 
 - **Agent Skill:** `.agents/skills/engineering-clarity/SKILL.md` is the canonical skill. Its `references/`, `assets/`, and `examples/` are the single editable source.
