@@ -6,6 +6,14 @@ ECS is a vendor-neutral, **ASD-STE100-inspired** writing convention for software
 
 > **Not ASD-STE100 certified.** ECS applies selected principles of simplified technical writing. It does not reproduce the official ASD-STE100 dictionary, implement every official rule, or establish formal compliance. Refer to https://asd-ste100.org/ for the official standard.
 
+## Start here
+
+- **Introducing ECS to your team?** Read the [visual pitch](https://morenojesus.github.io/engineering-clarity-standard/): a before-and-after example, what the kit includes, and a three-step pilot proposal.
+- **Ready to try it?** Follow the [quick start](#quick-start-windows--powershell).
+- **Planning adoption?** Use the [adoption guide](docs/ADOPTION.md).
+
+The visual pitch opens directly in your browser through GitHub Pages. To view it offline, clone or download this repository and open [`docs/pitch.html`](docs/pitch.html). Changes to that file on `main` automatically deploy through [the Pages workflow](.github/workflows/pages.yml).
+
 ## Why adopt ECS? See the difference
 
 ECS replaces vague technical language with explicit intent, observable results, and visible unknowns. That makes requests easier to implement, review, and test—whether the author is a person or an AI coding agent.
@@ -182,6 +190,10 @@ The checker flags *possible* vague language, unresolved placeholders, and long p
 ## Adoption guidance
 
 Read `docs/ADOPTION.md` for rollout, ownership, review responsibilities, and a practical adoption path. This kit defines writing conventions; it is **not** a substitute for security review, human judgment, QA, or CI verification.
+
+## License
+
+This kit is available under the [MIT License](LICENSE). The license covers this repository, not the official ASD-STE100 standard.
 
 ## Sources
 

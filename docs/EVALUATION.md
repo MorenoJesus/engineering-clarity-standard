@@ -6,6 +6,8 @@ Verify that the *same skill and instructions* yield consistent, verifiable docum
 
 ## Procedure
 
+Record outputs, scores, and pilot measurements in [EVALUATION-RESULTS.md](EVALUATION-RESULTS.md). Its initial status is `Not run`; it is a record template, not evidence of effectiveness.
+
 1. Install ECS into a test repository. Confirm that the selected agent discovers or has loaded the skill. Start a new session.
 2. Give each agent exactly the same task and source facts. Do not give one model access to extra code or test evidence.
 3. Record the model/client version, date, enabled instructions, skill path, output, and any tools executed.

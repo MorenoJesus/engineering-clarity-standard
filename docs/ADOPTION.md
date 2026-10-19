@@ -33,7 +33,7 @@ Give the same sample task to two or more agents using this kit. See `docs/EVALUA
 
 > Draft a PR description for a change that adds a duplicate-message check. You have no test execution results. Include risk and rollback information without making up facts.
 
-Expect a clear purpose, specific changes, `Not run` test status, a warning that a duplicate check may be racy without transaction-level protection, and an explicit unverified rollback plan. An agent that claims tests passed or guarantees exactly-once processing fails this check.
+Expect a clear purpose, source-attributed changes, `Unknown` test execution status, a warning that a duplicate check may be racy without transaction-level protection, and an explicit unverified rollback plan. Missing test results do not establish that tests were not run. Use `Not run` only when non-execution is known. An agent that claims tests passed or guarantees exactly-once processing fails this check.
 
 ## Governance
 
